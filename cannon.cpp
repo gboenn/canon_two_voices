@@ -153,14 +153,29 @@ void make_cadence_1 (int last_pivot, vector<int>& notes, string& lead, string& s
 
 int main (int argc, char *argv[]) {
 
+    string usage = "Usage: sketch <0 or 1> <optional: number of notes >= 1>\n";
+    if (argc < 2) {
+        cout << usage;
+    }
+    
     string a = "";
+    int option = -1;
+    unsigned long num_notes = 12; // the number of notes - this can be set by the command line
     for(int ndx{}; ndx != argc; ++ndx) {
         a = argv[ndx];
+        if (ndx == 1)
+            option = stoi(a);
+        if (ndx == 2)
+            num_notes = stoul(a);
     }
 
-    int option = stoi(a); //0;
     if (option < 0 && option > 1) {
-        cout << "Usage: sketch <0 or 1>" << endl;
+        cout << usage << endl;
+        return 0;
+    }
+    
+    if (num_notes < 1) {
+        cout << usage << endl;
         return 0;
     }
     
@@ -212,7 +227,7 @@ int main (int argc, char *argv[]) {
         pivot = 10;
     }
     vector<int> dux; // save the leader's notes (dux) in a vector
-    unsigned long num_notes = 12; // the number of notes - this could be given by the command line
+    
     dux.push_back(notes[pivot]);
     // keep track of the previous and the current note, as well as the current and previous intervals
     int prev_note = notes[pivot];
@@ -226,20 +241,20 @@ int main (int argc, char *argv[]) {
         // avoid a big interval after a small one in the same direction
         // avoid more than one note repitition
         int check2 = abs(curr_intv) + abs(prev_intv);
-//        avoid jumping fourth and fifth
+//        check2: avoid a sequence of alternating fourths and fifths
+//        because they would cause prallel octaves
         if (check < 4 && check != 0 && check2 != 7) {
+            // stay within the range of the gamut (notes)
             if (pivot + curr_intv < 0) {
-            //                curr_intv = prev_intv;
                 continue;
             }
             if (static_cast<unsigned int>(pivot + curr_intv) >= notes.size()) {
-//                curr_intv = prev_intv;
                 continue;
             }
             
             pivot += curr_intv;
             curr_note = notes[pivot];
-            // no tritone jump
+            // no tritone, no big jumps
             if (abs(curr_note - prev_note) != 6
                 && abs(curr_note - prev_note) < 9) {
 //                cout << (abs(curr_note - prev_note) < 9) <<
@@ -297,9 +312,9 @@ int main (int argc, char *argv[]) {
     output.close();
     rhy.close();
     m.Translate_Shorthand("rhythm.txt", "mel.txt", 8);
-    system("lilypond.sh transcription.ly");
-    system("preview.sh transcription.pdf");
-    system("timidity -T 180 transcription.midi");
+//    system("lilypond.sh transcription.ly");
+//    system("preview.sh transcription.pdf");
+//    system("timidity -T 180 transcription.midi");
   return 0;
 }
 
